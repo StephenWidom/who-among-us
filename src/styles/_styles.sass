@@ -1,0 +1,233 @@
+@import "~@blueprintjs/core/lib/scss/variables";
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans&family=Oswald:wght@600&display=swap');
+
+$lipstick: #B33E50
+$pink: #D86F71
+$beige: #D8B790
+$dark-brown: #390A1E
+
+body
+  background: $pink url('../assets/background.jpg') center center no-repeat
+  background-size: cover
+  height: 100vh
+  overflow: hidden
+
+.App
+  font-family: 'Open Sans', sans-serif;
+
+.container
+  width: 1200px
+  margin: 0 auto
+  position: relative
+
+h1,
+h2
+  text-align: center
+  font-family: 'Oswald', sans-serif
+  font-weight: 600
+  font-size: 74px
+  text-transform: uppercase
+  letter-spacing: -3px
+  text-shadow: 4px 4px $lipstick
+
+h2
+  font-size: 46px
+  color: #fff
+  letter-spacing: -2px
+
+h3
+  font-size: 22px
+  margin: 0 0 20px
+  font-weight: 600
+
+h4
+  font-size: 20px
+  margin: 0
+  font-weight: 800
+
+.BackButton
+  position: absolute
+  top: 33px
+
+.Prompt
+  
+  .example
+    line-height: 1.5
+    font-size: 18px
+    background: rgba(255, 255, 255, 0.8)
+    max-width: 600px
+    margin: 40px auto 0
+    border-radius: 2px
+    padding: 20px
+
+    p
+      cursor: pointer
+
+.Host
+
+  .Wait
+
+    .Players
+      list-style: none
+      padding: 0
+      margin: 0
+
+      .bp3-popover-target
+        display: block
+
+      li
+        display: block
+        font-size: 30px
+        border-radius: 2px
+        border: 1px solid #000
+        position: relative
+        background: $beige
+        cursor: pointer
+
+        box-shadow: 4px 4px $lipstick
+        padding: 15px 20px
+        margin: 0 0 10px
+
+        &.done
+          background: $green5
+
+        &:after
+          content: '⋯'
+          position: absolute
+          right: 15px
+
+        &.done:after
+          content: '✓'
+
+        &:hover
+          background: $red5
+
+.Reveal
+  
+  .positive
+    color: $green5
+
+  .negative
+    color: $red5
+
+.Timer
+  text-align: center
+  font-weight: 800
+  color: #000
+  text-shadow: 4px 4px $lipstick
+
+.Score
+
+  .player
+    background: $beige
+    box-shadow: 4px 4px $lipstick
+    border-radius: 2px
+    padding: 15px 20px
+    position: relative
+    margin: 0 0 10px
+
+    &.disconnected
+      background: $gray4
+
+      & h4:after
+        content: '(disconnected)'
+        font-style: italic
+        text-transform: uppercase
+        font-size: 14px
+        margin-left: 10px
+        font-weight: 300
+        position: relative
+        top: -5px
+
+    &.psubmitted
+      background: $green5
+
+    h4,
+    div
+      font-size: 30px
+
+    div
+      position: absolute
+      right: 20px
+      top: 15px
+      font-weight: 800
+
+.Disconnected
+
+  h4
+    color: $dark-brown
+    font-size: 26px
+    text-align: center
+    font-weight: 300
+
+.Winner
+
+  h2
+    pointer-events: none
+
+  .bp3-button
+    margin-top: 60px
+
+.PlayerList
+  margin-top: 40px
+
+  h3
+    font-size: 26px
+    text-shadow: 4px 4px $lipstick
+    text-align: center
+    text-transform: uppercase
+    font-family: 'Oswald', sans-serif
+    font-weight: 800
+
+  ul
+    font-size: 0
+    margin: 40px 0 0
+    padding: 0
+
+    li
+      display: inline-block
+      font-size: 18px
+      background: $beige
+      box-shadow: 4px 4px $lipstick
+      width: 32%
+      margin: 0 2% 2% 0
+      padding: 10px
+      letter-spacing: 1px
+      font-weight: 600
+      border-radius: 2px
+
+      &:nth-child(3n)
+        margin-right: 0
+
+@media (max-width: 767px) and (min-width: 480px)
+  .container
+    width: 480px
+
+  h1
+    font-size: 50px
+
+  h2
+    font-size: 40px
+
+@media (max-width: 480px)
+  .container
+    width: 96%
+
+  h1
+    font-size: 42px
+
+  h2
+    font-size: 30px
+
+  .PlayerList
+
+    ul
+
+      li
+        width: 100%
+        margin-right: 0
+
+  .Disconnected
+    
+    h4
+      font-size: 19px
