@@ -36,6 +36,7 @@ io.on('connection', socket => {
         const thisPlayer = players.find(player => player.name === name);
         if (!_.isNil(thisPlayer)) {
             thisPlayer.id = id;
+            thisPlayer.connected = true;
             io.emit('updatePlayers', players);
         }
     });
