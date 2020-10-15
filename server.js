@@ -1,13 +1,19 @@
+require('dotenv').config();
 const express = require('express');
-const http = require('http');
+const https = require('https');
+const fs = require('fs');
 const socketIO = require('socket.io');
 const _ = require('lodash');
 
 const PORT = 4002;
 
+const options = {
+    key: fs.readFileSync(process.env.REACT_APP_KEY),
+    cert: fs.readFileSync(process.env.REACT_APP_CERT)
+};
 
 const app = express();
-const server = http.createServer(app);
+const server = https.createServer(options, app);
 const io = socketIO(server);
 
 const game = {
@@ -70,11 +76,13 @@ io.on('connection', socket => {
     socket.on('submitPrompt', (id, prompt) => {
         const { players, prompts } = game;
         const thisPlayer = players.find(player => player.id === id);
-        thisPlayer.promptSubmitted = true;
-        io.emit('updatePlayers', players);
+        if (!_.isNil(thisPlayer)) {
+            thisPlayer.promptSubmitted = true;
+            io.emit('updatePlayers', players);
 
-        prompts.push({ prompt, number: 0 });
-        io.emit('updatePrompts', prompts);
+            prompts.push({ prompt, number: 0 });
+            io.emit('updatePrompts', prompts);
+        }   
     });
 
     socket.on('startGame', () => {
@@ -115,8 +123,10 @@ io.on('connection', socket => {
     socket.on('submitGuess', id => {
         const { players } = game;
         const thisPlayer = players.find(p => p.id === id);
-        thisPlayer.guessSubmitted = true;
-        io.emit('updatePlayers', players);
+        if (!_.isNil(thisPlayer)) {
+            thisPlayer.guessSubmitted = true;
+            io.emit('updatePlayers', players);
+        }   
     });
     
     socket.on('revealAnswer', () => {
@@ -126,9 +136,11 @@ io.on('connection', socket => {
     socket.on('sendScore', (id, score) => {
         const { players } = game;
         const thisPlayer = players.find(p => p.id === id);
-        thisPlayer.score += score;
-        thisPlayer.guessSubmitted = false;
-        io.emit('updatePlayers', players);
+        if (!_.isNil(thisPlayer)) {
+            thisPlayer.score += score;
+            thisPlayer.guessSubmitted = false;
+            io.emit('updatePlayers', players);
+        }
     });
 
     socket.on('nextPrompt', () => {
