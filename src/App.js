@@ -1,6 +1,7 @@
 import React from 'react';
 import socketIOClient from 'socket.io-client';
 import { Switch, Route, withRouter } from 'react-router-dom';
+import NoSleep from 'nosleep.js';
 
 import Join from './components/Join';
 import Host from './components/Host';
@@ -24,14 +25,15 @@ class App extends React.Component {
             revealed: false,
         };
         this.socket = socketIOClient(process.env.REACT_APP_ADDR);
+        this.noSleep = new NoSleep();
     }
 
     componentDidMount() {
         // Anytime a player joins
-        this.socket.on('updatePlayers', players => { this.setState({ players }, () => console.log(this.state)); });
+        this.socket.on('updatePlayers', players => { this.setState({ players }); });
 
         // When a player submits a prompt
-        this.socket.on('updatePrompts', prompts => { this.setState({ prompts }, () => console.log(this.state)); });
+        this.socket.on('updatePrompts', prompts => { this.setState({ prompts }); });
 
         // If there was an error reported from the socket server
         this.socket.on('errorJoining', joinError => { this.setState({ joinError }); });
@@ -59,7 +61,20 @@ class App extends React.Component {
             this.props.history.push('/host') });
         });
 
+        // Reveal the number of players who have did da ting
         this.socket.on('answerRevealed', revealed => { this.setState({ revealed }); });
+
+        // Prevent user's phone from going to sleep
+        document.addEventListener('touchstart', this.enableNoSleep, false);
+    }
+
+    componentWillUnmount() {
+        this.noSleep.disable();
+    }
+
+    enableNoSleep = () => {
+        this.noSleep.enable();
+        document.removeEventListener('touchstart', this.enableNoSleep, false);
     }
 
     render() {
