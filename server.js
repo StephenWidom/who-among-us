@@ -27,6 +27,19 @@ const game = {
 io.on('connection', socket => {
     console.log('Connection made!', socket.id);
 
+    // Send a notification to a waking device (in Play component)
+    socket.emit('deviceWake', socket.id);
+
+    socket.on('updatePlayerId', (name, id) => {
+        const { players } = game;
+        // Get player by name, since id has changed
+        const thisPlayer = players.find(player => player.name === name);
+        if (!_.isNil(thisPlayer)) {
+            thisPlayer.id = id;
+            io.emit('updatePlayers', players);
+        }
+    });
+
     // Join the actual room
     socket.on('joinSocketRoom', (host, name, id) => {
         const { players } = game;
