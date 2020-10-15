@@ -30,7 +30,7 @@ const Reveal = props => {
 
     return <animated.div className='Reveal' style={styles}>
         <h1>{prompt.number} of us</h1>
-        <animated.h2 style={scoreStyles} className={`${score >= 0 ? 'positive' : 'negative'}`}>{`${score >= 0 && '+'} ${score} points`}</animated.h2>
+        <animated.h2 style={scoreStyles} className={`${score >= 0 ? 'positive' : 'negative'}`}>{`${score >= 0 ? '+' : ''} ${score} points`}</animated.h2>
     </animated.div>;
 };
 

@@ -23,7 +23,7 @@ class App extends React.Component {
             host: false,
             revealed: false,
         };
-        this.socket = socketIOClient('http://localhost:4001');
+        this.socket = socketIOClient(process.env.REACT_APP_ADDR);
     }
 
     componentDidMount() {

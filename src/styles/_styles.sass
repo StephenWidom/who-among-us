@@ -116,7 +116,8 @@ h4
   color: #000
   text-shadow: 4px 4px $lipstick
 
-.Score
+.Score,
+.PlayerScore
 
   .player
     background: $beige
@@ -199,6 +200,12 @@ h4
       &:nth-child(3n)
         margin-right: 0
 
+.PlayerScore
+
+  .yaboi
+    background: #fff
+
+
 @media (max-width: 767px) and (min-width: 480px)
   .container
     width: 480px
@@ -231,3 +238,34 @@ h4
     
     h4
       font-size: 19px
+
+  .PlayerScore
+
+    .player
+      padding: 10px
+      position: relative
+      margin: 0 0 10px
+
+      &.disconnected
+        background: $gray4
+
+        & h4:after
+          content: '(disconnected)'
+          font-style: italic
+          text-transform: uppercase
+          font-size: 14px
+          margin-left: 10px
+          font-weight: 300
+          position: relative
+          top: 0
+
+      &.psubmitted
+        background: $green5
+
+      h4,
+      div
+        font-size: 22px
+
+      div
+        top: 10px
+

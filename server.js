@@ -3,7 +3,7 @@ const http = require('http');
 const socketIO = require('socket.io');
 const _ = require('lodash');
 
-const PORT = 4001;
+const PORT = 4002;
 
 
 const app = express();
@@ -78,10 +78,15 @@ io.on('connection', socket => {
     });
 
     socket.on('startGame', () => {
-        const { prompts } = game;
+        const { prompts, round, players } = game;
         const shuffledPrompts = _.shuffle(prompts);
         game.prompts = shuffledPrompts;
         io.emit('updatePrompts', shuffledPrompts);
+
+        if (round === 2) {
+            players.forEach(p => p.promptSubmitted = true);
+            io.emit('updatePlayers', players);
+        }
 
         game.started = true;
         io.emit('gameStarted', true);

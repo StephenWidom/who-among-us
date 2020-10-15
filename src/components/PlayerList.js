@@ -8,7 +8,7 @@ const PlayerList = props => {
     return <div className='PlayerList'>
         <h3>Other Players</h3>
         {!!list.length && <ul>
-            {list.map(p => <li>{p.name}</li>)}
+            {list.map(p => <li key={p.id}>{p.name}</li>)}
         </ul>}
     </div>;
 };

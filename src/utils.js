@@ -72,6 +72,13 @@ export const getWinner = players => {
 
 export const getPlayersButMe = (id, players) => players.filter(p => p.id !== id);
 
+export const didIWin = (id, players) => {
+    let winningScore = null;
+    players.forEach(p => winningScore = Math.max(winningScore, p.score));
+    const me = players.find(p => p.id === id);
+    return me.score === winningScore;
+}
+
 export const examplePrompts = [
     'never broke a bone',
     'pissed themselves in the last year',
