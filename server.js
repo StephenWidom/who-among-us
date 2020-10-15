@@ -1,13 +1,19 @@
+require('dotenv').config();
 const express = require('express');
-const http = require('http');
+const https = require('https');
+const fs = require('fs');
 const socketIO = require('socket.io');
 const _ = require('lodash');
 
 const PORT = 4002;
 
+const options = {
+    key: fs.readFileSync(process.env.REACT_APP_KEY),
+    cert: fs.readFileSync(process.env.REACT_APP_CERT)
+};
 
 const app = express();
-const server = http.createServer(app);
+const server = https.createServer(options, app);
 const io = socketIO(server);
 
 const game = {
