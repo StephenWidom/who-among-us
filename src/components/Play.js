@@ -1,7 +1,8 @@
 import React, { PureComponent } from 'react';
 import { Redirect } from 'react-router-dom';
+import _ from 'lodash';
 
-import { isInGame, promptSubmitted } from '../utils.js';
+import { isInGame, promptSubmitted, getMe } from '../utils.js';
 import Prompt from './Prompt';
 import Guess from './Guess';
 import PlayerScore from './PlayerScore';
@@ -16,7 +17,22 @@ class Play extends PureComponent {
         this.state = {
             showScore: false,
             showEnd: false,
+            name: null,
         }
+    }
+
+    componentDidMount() {
+        const { socket, players } = this.props;
+        const me = getMe(socket.id, players);
+        if (_.isNil(me))
+            return;
+
+        this.setState({ name: me.name }, () => { console.log('HEY', this.state) });
+
+        socket.on('deviceWake', socket => {
+            const { name } = this.state;
+            socket.emit('updatePlayerId', name, socket.id);
+        });
     }
 
     componentDidUpdate(prevProps) {
