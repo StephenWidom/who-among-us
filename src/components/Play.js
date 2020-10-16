@@ -23,16 +23,18 @@ class Play extends PureComponent {
 
     componentDidMount() {
         const { socket, players } = this.props;
+
+        socket.on('deviceWake', id => {
+            const { name } = this.state;
+            socket.emit('updatePlayerId', name, id);
+        });
+
         const me = getMe(socket.id, players);
         if (_.isNil(me))
             return;
 
-        this.setState({ name: me.name }, () => { console.log('HEY', this.state) });
+        this.setState({ name: me.name });
 
-        socket.on('deviceWake', socket => {
-            const { name } = this.state;
-            socket.emit('updatePlayerId', name, socket.id);
-        });
     }
 
     componentDidUpdate(prevProps) {
