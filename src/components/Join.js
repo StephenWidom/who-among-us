@@ -24,7 +24,7 @@ class Join extends PureComponent {
 
         // Focus on form immediately
         this.form = document.querySelector('form');
-        this.form.name.focus();
+        this.form.room.focus();
     }
 
     componentDidUpdate(prevProps) {
@@ -49,7 +49,15 @@ class Join extends PureComponent {
         // Don't actually submit the bish
         e.preventDefault();
 
-        const { name } = e.target;
+        const { room, name } = e.target;
+
+        if (room.value.trim() === '') {
+            this.setState({
+                errorMessage: 'Please enter a room code',
+                alertShown: true,
+            });
+            return;
+        }
         
         // Make sure a name has been entered
         if (name.value.trim() === '') {
@@ -60,9 +68,17 @@ class Join extends PureComponent {
             return;
         }
 
+        if (name.value.trim().length > 12) {
+            this.setState({
+                errorMessage: 'Please enter a name with fewer than 13 characters',
+                alertShown: true,
+            });
+            return;
+        }
+
         // Send the name to the socket server
         const { socket } = this.props;
-        socket.emit('joinSocketRoom', false, name.value.trim(), socket.id);
+        socket.emit('joinSocketRoom', room.value.trim().toUpperCase(), false, name.value.trim().toUpperCase().replace(/[^a-zA-Z0-9 ]/g, ""), socket.id);
     }
 
     render() {
@@ -78,6 +94,15 @@ class Join extends PureComponent {
                     : <>
                         <h2>Join the game!</h2>
                         <form onSubmit={e => this.handleForm(e)}>
+                            <InputGroup
+                                type='text'
+                                leftIcon='geosearch'
+                                name='room'
+                                large={true}
+                                maxLength='4'
+                                placeholder='Room'
+                                onChange={e => this.makeUppercase(e)}
+                            />
                             <InputGroup
                                 type='text'
                                 name='name'
@@ -97,7 +122,7 @@ class Join extends PureComponent {
                 }
                 <Alert
                     isOpen={alertShown}
-                    onClose={() => this.setState({ alertShown: false, errorMessage: null }, () => this.form.name.focus())}
+                    onClose={() => this.setState({ alertShown: false, errorMessage: null }, () => this.form.room.focus())}
                     canEscapeKeyCancel={true}
                     canOutsideClickCancel={true}
                     icon='error'

@@ -24,8 +24,9 @@ const Reveal = props => {
     })
 
     useEffect(() => { // Use like componentDidMount
+        const { room } = props;
         // Send score to socket server
-        socket.emit('sendScore', socket.id, score);
+        socket.emit('sendScore', room, socket.id, score);
     }, []);
 
     return <animated.div className='Reveal' style={styles}>

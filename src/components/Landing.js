@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { Howler } from 'howler';
 import { Link } from 'react-router-dom';
 import { Button } from '@blueprintjs/core';
+import randomstring from 'randomstring';
 
 import Title from './Title';
 
@@ -9,7 +10,19 @@ const Landing = props => {
     const { hostError, socket } = props;
 
     const hostGame = () => {
-        socket.emit('joinSocketRoom', true, null, socket.id);
+        const room = generateRoomCode();
+        socket.emit('joinSocketRoom', room, true, null, socket.id);
+    }
+
+    // Create a unique id for each game (room)
+    const generateRoomCode = () => {
+        const roomCode = randomstring.generate({
+            length: 4,
+            charset: 'alphabetic',
+            readable: 'true',
+            capitalization: 'uppercase',
+        });
+        return roomCode;
     }
 
     useEffect(() => {

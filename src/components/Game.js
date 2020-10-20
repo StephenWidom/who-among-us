@@ -42,10 +42,10 @@ class Game extends PureComponent {
     }
 
     nextPrompt = () => {
-        const { socket } = this.props;
+        const { socket, room } = this.props;
         setTimeout(() => {
             this.setState({ everyoneDone: false }, () => {
-                socket.emit('nextPrompt');
+                socket.emit('nextPrompt', room);
             });
         }, 7000);
     }
@@ -67,10 +67,10 @@ class Game extends PureComponent {
     }
 
     endRound = () => {
-        const { socket, ding } = this.props;
+        const { socket, ding, room } = this.props;
         clearInterval(this.timer);
         Howler.stop();
-        socket.emit('revealAnswer');
+        socket.emit('revealAnswer', room);
         ding.play();
         this.nextPrompt();
     }

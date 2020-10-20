@@ -7,7 +7,7 @@ import { AppToaster } from './AppToaster';
 import { allPromptsComplete } from '../utils';
 
 const Wait = props => {
-    const { players, socket } = props;
+    const { players, socket, room } = props;
     const prevPlayers = useRef([]);
     const disabled = useRef(true);
     const isPlaying = useRef(false);
@@ -37,21 +37,24 @@ const Wait = props => {
     }, [players]);
 
     const startGame = () => {
-        socket.emit('startGame');
+        const { room } = props;
+        socket.emit('startGame', room);
         Howler.stop();
     }
 
     const bootPlayer = id => {
-        socket.emit('bootPlayer', id);
+        const { room } = props;
+        socket.emit('bootPlayer', room, id);
     }
 
     return <div className='Wait'>
         <div className="container">
             <h1>Who's In?</h1>
+            <h2><span>Room:</span>{room}</h2>
             {!!players.length && (
                 <ul className='Players'>
                     {players.map(player =>
-                        <Tooltip content={`BOOT ${player.name}`}>
+                        <Tooltip key={player.id + 'boot'} content={`BOOT ${player.name}`}>
                             <li
                                 key={player.id}
                                 onClick={() => bootPlayer(player.id)}
