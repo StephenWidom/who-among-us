@@ -22,7 +22,8 @@ const Score = props => {
     }, []);
 
     const startRoundTwo = () => {
-        socket.emit('startGame');
+        const { room } = props;
+        socket.emit('startGame', room);
     }
 
     return <div className='Score'>

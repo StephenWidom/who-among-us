@@ -12,12 +12,13 @@ const Winner = props => {
     });
 
     const playAgain = () => {
-        socket.emit('resetGame');
+        const { room } = props;
+        socket.emit('resetGame', room);
     }
 
     const styles = useSpring({
         config: config.wobbly,
-        transform: 'scale(3)',
+        transform: 'scale(2.6)',
         from: {
             transform: 'scale(1)'
         },

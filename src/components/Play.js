@@ -22,11 +22,11 @@ class Play extends PureComponent {
     }
 
     componentDidMount() {
-        const { socket, players } = this.props;
+        const { socket, players, room } = this.props;
 
         socket.on('deviceWake', id => {
             const { name } = this.state;
-            socket.emit('updatePlayerId', name, id);
+            socket.emit('updatePlayerId', room, name, id);
         });
 
         const me = getMe(socket.id, players);

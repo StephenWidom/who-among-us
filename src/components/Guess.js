@@ -37,7 +37,7 @@ class Guess extends PureComponent {
     handleForm = e => {
         e.preventDefault();
 
-        const { players, socket } = this.props;
+        const { players, socket, room } = this.props;
         const guess = e.target.guess.value.trim();
 
         if (guess === '') {
@@ -60,13 +60,13 @@ class Guess extends PureComponent {
             return;
         }
 
-        this.setState({ guess }, () => socket.emit('submitGuess', socket.id));
+        this.setState({ guess }, () => socket.emit('submitGuess', room, socket.id));
     }
 
     sendResponse = (me, prompt) => {
-        const { socket } = this.props;
+        const { socket, room } = this.props;
         this.setState({ submittedResponse: true }, () => {
-            socket.emit('sendResponse', socket.id, me, prompt);
+            socket.emit('sendResponse', room, socket.id, me, prompt);
             document.querySelector('input').focus();
         });
     }

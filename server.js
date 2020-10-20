@@ -16,13 +16,7 @@ const app = express();
 const server = https.createServer(options, app);
 const io = socketIO(server);
 
-const game = {
-    players: [],
-    started: false,
-    prompts: [],
-    round: 1,
-    host: null,
-};
+const games = [];
 
 io.on('connection', socket => {
     console.log('Connection made!', socket.id);
@@ -30,30 +24,36 @@ io.on('connection', socket => {
     // Send a notification to a waking device (in Play component)
     socket.emit('deviceWake', socket.id);
 
-    socket.on('updatePlayerId', (name, id) => {
-        const { players } = game;
-        // Get player by name, since id has changed
-        const thisPlayer = players.find(player => player.name === name);
-        if (!_.isNil(thisPlayer)) {
-            thisPlayer.id = id;
-            thisPlayer.connected = true;
-            io.emit('updatePlayers', players);
-        }
-    });
-
     // Join the actual room
-    socket.on('joinSocketRoom', (host, name, id) => {
-        const { players } = game;
+    socket.on('joinSocketRoom', (room, host, name, id) => {
 
         if (host) {
-            if (!!game.host) {
-                io.to(id).emit('hostError', 'Someone is already hosting!');
-                return
-            }
-            game.host = id;
-            io.to(id).emit('gameHosted');
+            socket.join(room);
+            console.log(`${room} created!`);
+            console.log(`${games.length + 1} total games in progress.`);
+
+            // Default / blank game
+            games.push({
+                room,
+                players: [],
+                started: false,
+                prompts: [],
+                round: 1,
+                host: id,
+            });
+
+            // Let the host know it's all gucci
+            io.to(id).emit('gameHosted', room);
 
         } else { // Player tryna join
+            const game = games.find(game => game.room === room);
+
+            // Check if the room code exists
+            if (_.isNil(game)) {
+                io.to(id).emit('errorJoining', `${room} is not a valid game code!`);
+                return;
+            }
+
             if (!game.host) {
                 io.to(id).emit('errorJoining', 'Someone needs to host the bish');
                 return;
@@ -63,6 +63,8 @@ io.on('connection', socket => {
                 io.to(id).emit('errorJoining', 'The game started already!');
                 return;
             }
+
+            const { players } = game;
 
             if (players.some(player => player.name === name)) {
                 io.to(id).emit('errorJoining', 'That name is taken!');
@@ -78,145 +80,180 @@ io.on('connection', socket => {
                 connected: true,
             });
 
+            // Actually join the bish
+            socket.join(room);
+
             // Send players array to errbody
-            io.emit('updatePlayers', players);
+            io.in(room).emit('updatePlayers', players);
 
             // Player who submitted name goes to /play
-            io.to(id).emit('goToPrompt');
+            io.to(id).emit('goToPrompt', room);
         }
 
     });
 
-    socket.on('submitPrompt', (id, prompt) => {
-        const { players, prompts } = game;
-        const thisPlayer = players.find(player => player.id === id);
-        if (!_.isNil(thisPlayer)) {
-            thisPlayer.promptSubmitted = true;
-            io.emit('updatePlayers', players);
+    socket.on('submitPrompt', (room, id, prompt) => {
+        const game = games.find(game => game.room === room);
+        if (!_.isNil(game)) {
+            const { players, prompts } = game;
+            const thisPlayer = players.find(player => player.id === id);
+            if (!_.isNil(thisPlayer)) {
+                thisPlayer.promptSubmitted = true;
+                io.in(room).emit('updatePlayers', players);
 
-            prompts.push({ prompt, number: 0 });
-            io.emit('updatePrompts', prompts);
+                prompts.push({ prompt, number: 0 });
+                io.in(room).emit('updatePrompts', prompts);
+            }   
+        }
+    });
+
+    socket.on('startGame', room => {
+        const game = games.find(game => game.room === room);
+        if (!_.isNil(game)) {
+            const { prompts, round, players } = game;
+            const shuffledPrompts = _.shuffle(prompts);
+            game.prompts = shuffledPrompts;
+            io.in(room).emit('updatePrompts', shuffledPrompts);
+
+            if (round === 2) {
+                players.forEach(p => p.promptSubmitted = true);
+                io.in(room).emit('updatePlayers', players);
+            }
+
+            game.started = true;
+            io.in(room).emit('gameStarted', true);
         }   
     });
 
-    socket.on('startGame', () => {
-        const { prompts, round, players } = game;
-        const shuffledPrompts = _.shuffle(prompts);
-        game.prompts = shuffledPrompts;
-        io.emit('updatePrompts', shuffledPrompts);
+    socket.on('bootPlayer', (room, id) => {
+        const game = games.find(game => game.room === room);
+        if (!_.isNil(game)) {
+            const { players } = game;
+            const playerIndex = players.findIndex(player => player.id === id);
+            if (playerIndex !== -1) {
+                players.splice(playerIndex, 1);
+                io.in(room).emit('updatePlayers', players);
 
-        if (round === 2) {
-            players.forEach(p => p.promptSubmitted = true);
-            io.emit('updatePlayers', players);
-        }
-
-        game.started = true;
-        io.emit('gameStarted', true);
-    });
-
-    socket.on('bootPlayer', id => {
-        const { players } = game;
-        const playerIndex = players.findIndex(player => player.id === id);
-        players.splice(playerIndex, 1);
-        io.emit('updatePlayers', players);
-
-        // Tell the client they've been booted
-        io.to(id).emit('bootedPlayer');
-    });
-
-    socket.on('sendResponse', (id, me, prompt) => {
-        const { prompts } = game;
-        
-        if (me) {
-            const thisPrompt = prompts.find(p => p.prompt === prompt);
-            thisPrompt.number++;
-            io.emit('updatePrompts', prompts);
+                // Tell the client they've been booted
+                io.to(id).emit('bootedPlayer');
+            }
         }
     });
 
-    socket.on('submitGuess', id => {
-        const { players } = game;
-        const thisPlayer = players.find(p => p.id === id);
-        if (!_.isNil(thisPlayer)) {
-            thisPlayer.guessSubmitted = true;
-            io.emit('updatePlayers', players);
+    socket.on('sendResponse', (room, id, me, prompt) => {
+        const game = games.find(game => game.room === room);
+        if (!_.isNil(game)) {
+            const { prompts } = game;
+            if (me) {
+                const thisPrompt = prompts.find(p => p.prompt === prompt);
+                thisPrompt.number++;
+                io.in(room).emit('updatePrompts', prompts);
+            }
+        }
+    });
+
+    socket.on('submitGuess', (room, id) => {
+        const game = games.find(game => game.room === room);
+        if (!_.isNil(game)) {
+            const { players } = game;
+            const thisPlayer = players.find(p => p.id === id);
+            if (!_.isNil(thisPlayer)) {
+                thisPlayer.guessSubmitted = true;
+                io.in(room).emit('updatePlayers', players);
+            }
         }   
     });
     
-    socket.on('revealAnswer', () => {
-        io.emit('answerRevealed', true);
+    socket.on('revealAnswer', room => {
+        io.in(room).emit('answerRevealed', true);
     });
 
-    socket.on('sendScore', (id, score) => {
-        const { players } = game;
-        const thisPlayer = players.find(p => p.id === id);
-        if (!_.isNil(thisPlayer)) {
-            thisPlayer.score += score;
-            thisPlayer.guessSubmitted = false;
-            io.emit('updatePlayers', players);
+    socket.on('sendScore', (room, id, score) => {
+        const game = games.find(game => game.room === room);
+        if (!_.isNil(game)) {
+            const { players } = game;
+            const thisPlayer = players.find(p => p.id === id);
+            if (!_.isNil(thisPlayer)) {
+                thisPlayer.score += score;
+                thisPlayer.guessSubmitted = false;
+                io.in(room).emit('updatePlayers', players);
+            }
         }
     });
 
-    socket.on('nextPrompt', () => {
-        const { prompts, players } = game;
-        prompts.shift();
-        io.emit('updatePrompts', prompts);
+    socket.on('nextPrompt', room => {
+        const game = games.find(game => game.room === room);
+        if (!_.isNil(game)) {
+            const { prompts, players } = game;
+            prompts.shift();
+            io.in(room).emit('updatePrompts', prompts);
 
-        if (!prompts.length) {
-            // Set up the next round
-            game.round = (game.round === 1) ? 2 : null;
+            if (!prompts.length) {
+                // Set up the next round
+                game.round = (game.round === 1) ? 2 : null;
+                game.started = false;
+                players.forEach(p => {
+                    p.guessSubmitted = false;
+                    p.promptSubmitted = false;
+                });
+                io.in(room).emit('updatePlayers', players);
+                io.in(room).emit('updateRound', game.round);
+                io.in(room).emit('gameStarted', false);
+            } else {
+                players.forEach(p => {
+                    p.guessSubmitted = false;
+                });
+                io.in(room).emit('updatePlayers', players);
+            }
+            io.in(room).emit('answerRevealed', false);
+        }
+    });
+
+    socket.on('resetGame', room => {
+        const game = games.find(game => game.room === room);
+        if (!_.isNil(game)) {
+            const { players } = game;
+            game.round = 1;
+            io.in(room).emit('updateRound', game.round);
+
             game.started = false;
-            players.forEach(p => {
+            io.in(room).emit('gameStarted', false);
+
+            const updatedPlayers = players.filter(p => p.connected);
+            updatedPlayers.forEach(p => {
                 p.guessSubmitted = false;
                 p.promptSubmitted = false;
+                p.score = 0;
             });
-            io.emit('updatePlayers', players);
-            io.emit('updateRound', game.round);
-            io.emit('gameStarted', false);
-        } else {
-            players.forEach(p => {
-                p.guessSubmitted = false;
-            });
-            io.emit('updatePlayers', players);
+            game.players = updatedPlayers;
+            io.in(room).emit('updatePlayers', updatedPlayers);
         }
-        io.emit('answerRevealed', false);
-    });
-
-    socket.on('resetGame', () => {
-        const { players } = game;
-        game.round = 1;
-        io.emit('updateRound', game.round);
-
-        game.started = false;
-        io.emit('gameStarted', false);
-
-        const updatedPlayers = players.filter(p => p.connected);
-        updatedPlayers.forEach(p => {
-            p.guessSubmitted = false;
-            p.promptSubmitted = false;
-            p.score = 0;
-        });
-        game.players = updatedPlayers;
-        io.emit('updatePlayers', updatedPlayers);
     });
 
     socket.on('disconnect', () => {
         socket.removeAllListeners();
-        const { players, host, started, round } = game;
+        const game = games.find(g => g.host === socket.id) || games.find(g => g.players.some(p => p.id === socket.id));
+
+        // If they weren't in a game, no one cares
+        if (_.isNil(game))
+            return;
+
+        const { room, players, host, started, round } = game;
 
         // Check if it was host who disconnected
         if (socket.id === host) {
-            // Blow game up
-            game.host = null;
-            game.players = [];
-            game.prompts = [];
-            game.started = false;
-            game.round = 1;
-
             // Disconnect each player
             players.forEach(player => {
                 io.to(player.id).emit('bootedPlayer');
             });
+
+            console.log(`${room} game is no more`);
+            console.log(`${games.length - 1} total games in progress.`);
+
+            // Delete game
+            const gameIndex = games.findIndex(g => g.room === room);
+            games.splice(gameIndex, 1);
+
         } else {
             // If game has already been reset
             if (!game.host)
@@ -228,12 +265,26 @@ io.on('connection', socket => {
                     // Remove them from the game
                     const updatedPlayers = players.filter(p => p.id !== thisPlayer.id);
                     game.players = updatedPlayers;
-                    io.emit('updatePlayers', updatedPlayers);
+                    io.in(room).emit('updatePlayers', updatedPlayers);
                 } else {
                     // If game has already started, keep them in the game
                     thisPlayer.connected = false;
-                    io.emit('updatePlayers', players);
+                    io.in(room).emit('updatePlayers', players);
                 }
+            }
+        }
+    });
+
+    socket.on('updatePlayerId', (room, name, id) => {
+        const game = games.find(game => game.room === room);
+        if (!_.isNil(game)) {
+            const { players } = game;
+            // Get player by name, since id has changed
+            const thisPlayer = players.find(player => player.name === name);
+            if (!_.isNil(thisPlayer)) {
+                thisPlayer.id = id;
+                thisPlayer.connected = true;
+                io.in(room).emit('updatePlayers', players);
             }
         }
     });

@@ -23,7 +23,7 @@ class Prompt extends PureComponent {
         e.preventDefault();
 
         const { prompt } = e.target;
-        const { socket, prompts } = this.props;
+        const { socket, prompts, room } = this.props;
         const nicePrompt = prompt.value.trim().replace('?', '').toUpperCase();
 
         if (nicePrompt === '')
@@ -35,7 +35,7 @@ class Prompt extends PureComponent {
         }
 
         // Send the prompt to the socket server, trimmed
-        socket.emit('submitPrompt', socket.id, nicePrompt);
+        socket.emit('submitPrompt', room, socket.id, nicePrompt);
     }
 
     copyExample = example => {
