@@ -1,68 +1,22 @@
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+# Who Among Us
+### A real-time silly social game using Socket.IO
 
-## Available Scripts
+## How well do you know your friends?
 
-In the project directory, you can run:
+Play a round to determine which of you knows each other the best. Start by submitting a prompt that could apply to anyone, everyone, or no one in the group (e.g. Who among us has seen The Godfather?). Each player (including the asker) will have the chance to respond in private, then guess how many people in the group the prompt applies to (in this case, how many people have seen The Godfather). You get points for being in the ballpark, more points if you guess the number exactly. Point values are increased in the second and final round, and you'll even lose points for a particularly bad guess. The player with the most points at the end of both rounds wins!
 
-### `yarn start`
+## How do I play?
 
-Runs the app in the development mode.<br />
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+Head to https://whoamongus.xyz to start. It's best to have someone host and share their screen via google hangouts, discord or whatever; and have everyone submit and answer prompts on their phones.
 
-The page will reload if you make edits.<br />
-You will also see any lint errors in the console.
+## How did you make this?
 
-### `yarn test`
+Javascript. React for the front-end, Node and Express for the back-end. Socket.IO for the real-time communication between the two.
 
-Launches the test runner in the interactive watch mode.<br />
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## Sick. Where can I learn more about you?
 
-### `yarn build`
+Glad you asked! Check me out at https://stephenwidom.com for more about my webdev endeavors.
 
-Builds the app for production to the `build` folder.<br />
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## Are you gonna make more games?
 
-The build is minified and the filenames include the hashes.<br />
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `yarn eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
-
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
-
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/code-splitting
-
-### Analyzing the Bundle Size
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size
-
-### Making a Progressive Web App
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app
-
-### Advanced Configuration
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/advanced-configuration
-
-### Deployment
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/deployment
-
-### `yarn build` fails to minify
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify
+Oh yea.
