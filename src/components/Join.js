@@ -24,7 +24,14 @@ class Join extends PureComponent {
 
         // Focus on form immediately
         this.form = document.querySelector('form');
-        this.form.room.focus();
+        if (localStorage.getItem('roomCode')) {
+            this.form.room.value = localStorage.roomCode;
+        } else {
+            this.form.room.focus();
+        }
+
+        if (localStorage.getItem('playerName'))
+            this.form.name.value = localStorage.playerName;
     }
 
     componentDidUpdate(prevProps) {
@@ -78,6 +85,8 @@ class Join extends PureComponent {
 
         // Send the name to the socket server
         const { socket } = this.props;
+        localStorage.setItem('roomCode', room.value.trim().toUpperCase());
+        localStorage.setItem('playerName', name.value.trim().toUpperCase().replace(/[^a-zA-Z0-9 ]/g, ""));
         socket.emit('joinSocketRoom', room.value.trim().toUpperCase(), false, name.value.trim().toUpperCase().replace(/[^a-zA-Z0-9 ]/g, ""), socket.id);
     }
 

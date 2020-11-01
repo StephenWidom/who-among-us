@@ -59,15 +59,24 @@ io.on('connection', socket => {
                 return;
             }
 
-            if (game.started || game.round === 2) {
-                io.to(id).emit('errorJoining', 'The game started already!');
-                return;
+            const { players } = game;
+            const thisPlayer = players.find(p => p.name === name);
+            if (!_.isNil(thisPlayer)) {
+                if (!thisPlayer.connected) {
+                    thisPlayer.connected = true;
+                    thisPlayer.id = socket.id;
+                    socket.join(room);
+                    io.in(room).emit('updatePlayers', players);
+                    socket.emit('goToPrompt', room);
+                    return;
+                } else {
+                    socket.emit('errorJoining', 'That name is taken!');
+                    return;
+                }
             }
 
-            const { players } = game;
-
-            if (players.some(player => player.name === name)) {
-                io.to(id).emit('errorJoining', 'That name is taken!');
+            if (game.started || game.round === 2) {
+                io.to(id).emit('errorJoining', 'The game started already!');
                 return;
             }
 
