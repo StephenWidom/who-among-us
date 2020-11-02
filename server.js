@@ -61,14 +61,19 @@ io.on('connection', socket => {
 
             const { players } = game;
             const thisPlayer = players.find(p => p.name === name);
+
             if (!_.isNil(thisPlayer)) {
                 if (!thisPlayer.connected) {
+                    // Reconnecting after a phone wake-up or refresh
                     thisPlayer.connected = true;
                     thisPlayer.id = socket.id;
                     socket.join(room);
                     io.in(room).emit('updatePlayers', players);
+                    socket.emit('updatePrompts', game.prompts);
+                    socket.emit('gameStarted', game.started);
                     socket.emit('goToPrompt', room);
                     return;
+
                 } else {
                     socket.emit('errorJoining', 'That name is taken!');
                     return;
@@ -123,6 +128,12 @@ io.on('connection', socket => {
             const shuffledPrompts = _.shuffle(prompts);
             game.prompts = shuffledPrompts;
             io.in(room).emit('updatePrompts', shuffledPrompts);
+
+            if (round === 1) { // The first time startGame is called
+                const connectedPlayers = players.filter(p => p.connected);
+                game.players = connectedPlayers;
+                io.in(room).emit('updatePlayers', connectedPlayers);
+            }
 
             if (round === 2) {
                 players.forEach(p => p.promptSubmitted = true);
@@ -270,16 +281,9 @@ io.on('connection', socket => {
 
             const thisPlayer = players.find(p => p.id === socket.id);
             if (!_.isNil(thisPlayer)) {
-                if (!started && round === 1) { // If we're in the starting lobby
-                    // Remove them from the game
-                    const updatedPlayers = players.filter(p => p.id !== thisPlayer.id);
-                    game.players = updatedPlayers;
-                    io.in(room).emit('updatePlayers', updatedPlayers);
-                } else {
-                    // If game has already started, keep them in the game
-                    thisPlayer.connected = false;
-                    io.in(room).emit('updatePlayers', players);
-                }
+                // If game has already started, keep them in the game
+                thisPlayer.connected = false;
+                io.in(room).emit('updatePlayers', players);
             }
         }
     });

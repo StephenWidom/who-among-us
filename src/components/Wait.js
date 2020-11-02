@@ -54,6 +54,7 @@ const Wait = props => {
             {!!players.length && (
                 <ul className='Players'>
                     {players.map(player =>
+                        player.connected && 
                         <Tooltip key={player.id + 'boot'} content={`BOOT ${player.name}`}>
                             <li
                                 key={player.id}
